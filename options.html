@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Options</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 16px; background: #0d1117; color: #e6eef8 }
+        .card { background:#0b1220; padding:16px; border-radius:8px; border:1px solid #21324a }
+        label { display:block; margin-bottom:8px; font-weight:600 }
+        input[type=text] { width:100%; padding:8px; border-radius:4px; border:1px solid #2b3b4f; background:#07101a; color:#e6eef8 }
+        button{ margin-top:8px; padding:8px 12px; border-radius:6px; border:none; background:#2563eb; color:#fff }
+        .msg{ margin-top:10px; color:#9fb7ff }
+    </style>
+</head>
+<body>
+    <h2>AI Summarizer — Settings</h2>
+    <div class="card">
+        <label for="apiKey">Gemini API Key (stored in <strong>chrome.storage.sync</strong>)</label>
+        <input id="apiKey" type="text" placeholder="Enter your Gemini API key here" autocomplete="off" />
+        <div style="display:flex;gap:8px;align-items:center">
+            <button id="save">Save</button>
+            <button id="test" style="background:#10b981">Test Key</button>
+            <button id="clear" style="background:#374151">Clear</button>
+        </div>
+        <div id="status" class="msg"></div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

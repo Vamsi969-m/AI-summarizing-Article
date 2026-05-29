@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AI Summarizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-width: 320px;
+            max-width: 480px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+        }
+
+        /* Container for content */
+        .container {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Title styling */
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* Options section */
+        .options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Select dropdown */
+        select {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            background: #1a1f2e;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        select:hover {
+            background: #252b3d;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Summarize button */
+        #summarize {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        #summarize:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Copy button */
+        #copy-btn {
+            background: #1a1f2e;
+            color: #60a5fa;
+            border: 1px solid #2d3748;
+        }
+
+        #copy-btn:hover {
+            background: #252b3d;
+            border-color: #3b82f6;
+            color: #93c5fd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Result area */
+        #result {
+            background: #0d1117;
+            color: #e0e0e0;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Segoe UI', 'SF Mono', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 16px;
+            border: 1px solid #1f2937;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Custom scrollbar for result area */
+        #result::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #result::-webkit-scrollbar-track {
+            background: #1a1f2e;
+            border-radius: 4px;
+        }
+
+        #result::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        #result::-webkit-scrollbar-thumb:hover {
+            background: #60a5fa;
+        }
+
+        /* Loading state animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading #summarize {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Toast notification */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1f2e;
+            color: #60a5fa;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            pointer-events: none;
+            border: 1px solid #3b82f6;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        .toast.hide {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        /* Responsive design */
+        @media (max-width: 400px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+            
+            .options {
+                flex-direction: column;
+            }
+            
+            select, button {
+                width: 100%;
+            }
+            
+            #result {
+                max-height: 300px;
+            }
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent);
+            margin: 16px 0;
+        }
+
+        /* Status indicator */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #1f2937;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Focus styles for accessibility */
+        button:focus-visible, select:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Placeholder text styling */
+        #result:empty::before {
+            content: "No summary generated yet";
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            AI SUMMARIZER
+        </div>
+        
+        <div class="options">
+            <select id="summary-type">
+                <option value="brief">Brief Summary</option>
+                <option value="detail"> Detailed Summary</option>
+                <option value="bullets"> Bullet Points</option>
+            </select>
+
+            <button id="summarize"> Generate</button>
+            <button id="copy-btn">Copy</button>
+        </div>
+
+        <div class="divider"></div>
+        
+        <pre id="result">Select a summary type and click Generate...</pre>
+        
+        <div class="status">
+            <span class="status-dot"></span>
+            <span>Ready to summarize</span>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
